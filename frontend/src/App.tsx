@@ -17,7 +17,9 @@ const CURL_COMMAND = `curl -k -u elastic:user123 -X POST "https://localhost:9200
     "title": "Computador",
     "url": "https://example.com/computador",
     "content": "Computador é uma máquina eletrônica capaz de processar dados."
-  }'`
+  }'
+
+curl -k -u elastic:user123 -X POST "https://localhost:9200/wikipedia/_refresh"`
 
 function App() {
   const [query, setQuery] = useState('')
@@ -179,6 +181,12 @@ function App() {
                   <h3>{result.title || 'Sem titulo'}</h3>
                   <p>{result.abs || 'Documento sem resumo disponivel.'}</p>
                 </div>
+
+                {result.url && (
+                  <a className="result-link" href={result.url} rel="noreferrer" target="_blank">
+                    Abrir URL
+                  </a>
+                )}
               </article>
             ))}
           </div>
@@ -190,7 +198,7 @@ function App() {
           <div>
             <p className="eyebrow">Adicionar documento</p>
             <h2 id="curl-title">Exemplo de comando curl</h2>
-            <p>Execute no terminal para inserir um novo registro no Elasticsearch local.</p>
+            <p>Execute no terminal para inserir um registro e atualizar o indice.</p>
           </div>
 
           <button className="copy-button" onClick={copyCurlCommand} type="button">

@@ -93,7 +93,8 @@ h1 {
 
 .search-row button,
 .pagination button,
-.copy-button {
+.copy-button,
+.result-link {
   min-height: 42px;
   border: 0;
   border-radius: 8px;
@@ -198,7 +199,8 @@ button:disabled {
 
 .result-card {
   display: grid;
-  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
   align-items: start;
   padding: 20px;
   border: 1px solid #d9e2ec;
@@ -216,6 +218,22 @@ button:disabled {
   margin-top: 8px;
   color: #475467;
   line-height: 1.65;
+}
+
+.result-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border: 1px solid #cbd5e1;
+  color: #1f7a8c;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.result-link:hover {
+  border-color: #1f7a8c;
+  background: #eef8fa;
 }
 
 .curl-panel {
@@ -311,6 +329,14 @@ button:disabled {
   .pagination {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .result-card {
+    grid-template-columns: 1fr;
+  }
+
+  .result-link {
+    width: 100%;
   }
 
   .curl-header {
