@@ -93,7 +93,7 @@ h1 {
 
 .search-row button,
 .pagination button,
-.result-card a {
+.copy-button {
   min-height: 42px;
   border: 0;
   border-radius: 8px;
@@ -198,8 +198,7 @@ button:disabled {
 
 .result-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 18px;
+  gap: 8px;
   align-items: start;
   padding: 20px;
   border: 1px solid #d9e2ec;
@@ -219,18 +218,59 @@ button:disabled {
   line-height: 1.65;
 }
 
-.result-card a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 14px;
-  border: 1px solid #cbd5e1;
-  color: #1f7a8c;
-  text-decoration: none;
-  white-space: nowrap;
+.curl-panel {
+  display: grid;
+  gap: 16px;
+  margin-top: 8px;
+  padding: 22px;
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
+  background: #ffffff;
 }
 
-.result-card a:hover {
+.curl-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.curl-panel h2 {
+  color: #121826;
+  font-size: 1.2rem;
+  line-height: 1.35;
+}
+
+.curl-panel p:not(.eyebrow) {
+  color: #667085;
+}
+
+.curl-panel pre {
+  margin: 0;
+  overflow-x: auto;
+  border-radius: 8px;
+  background: #111827;
+  color: #e5e7eb;
+}
+
+.curl-panel code {
+  display: block;
+  min-width: max-content;
+  padding: 18px;
+  font-family: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.copy-button {
+  flex: 0 0 auto;
+  padding: 0 14px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #1f7a8c;
+}
+
+.copy-button:hover {
   border-color: #1f7a8c;
   background: #eef8fa;
 }
@@ -273,11 +313,11 @@ button:disabled {
     justify-content: space-between;
   }
 
-  .result-card {
-    grid-template-columns: 1fr;
+  .curl-header {
+    flex-direction: column;
   }
 
-  .result-card a {
+  .copy-button {
     width: 100%;
   }
 }

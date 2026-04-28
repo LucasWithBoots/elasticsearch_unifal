@@ -11,6 +11,13 @@ type SearchResult = {
 type RequestStatus = 'idle' | 'loading' | 'success' | 'error'
 
 const PAGE_SIZE = 10
+const CURL_COMMAND = `curl -k -u elastic:user123 -X POST "https://localhost:9200/wikipedia/_doc" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "title": "Computador",
+    "url": "https://example.com/computador",
+    "content": "Computador é uma máquina eletrônica capaz de processar dados."
+  }'`
 
 function App() {
   const [query, setQuery] = useState('')
@@ -19,6 +26,7 @@ function App() {
   const [results, setResults] = useState<SearchResult[]>([])
   const [status, setStatus] = useState<RequestStatus>('idle')
   const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
 
   const hasResults = results.length > 0
   const canGoBack = page > 1 && status !== 'loading'
@@ -71,6 +79,12 @@ function App() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     search(1)
+  }
+
+  async function copyCurlCommand() {
+    await navigator.clipboard.writeText(CURL_COMMAND)
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 1800)
   }
 
   return (
@@ -165,16 +179,28 @@ function App() {
                   <h3>{result.title || 'Sem titulo'}</h3>
                   <p>{result.abs || 'Documento sem resumo disponivel.'}</p>
                 </div>
-
-                {result.url && (
-                  <a href={result.url} rel="noreferrer" target="_blank">
-                    Abrir fonte
-                  </a>
-                )}
               </article>
             ))}
           </div>
         )}
+      </section>
+
+      <section className="curl-panel" aria-labelledby="curl-title">
+        <div className="curl-header">
+          <div>
+            <p className="eyebrow">Adicionar documento</p>
+            <h2 id="curl-title">Exemplo de comando curl</h2>
+            <p>Execute no terminal para inserir um novo registro no Elasticsearch local.</p>
+          </div>
+
+          <button className="copy-button" onClick={copyCurlCommand} type="button">
+            {copied ? 'Copiado' : 'Copiar comando'}
+          </button>
+        </div>
+
+        <pre>
+          <code>{CURL_COMMAND}</code>
+        </pre>
       </section>
     </main>
   )
