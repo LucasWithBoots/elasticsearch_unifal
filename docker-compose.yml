@@ -4,6 +4,7 @@ services:
     container_name: elasticsearch_unifal
     environment:
       discovery.type: single-node
+      xpack.security.enabled: "false"
       ELASTIC_PASSWORD: user123
       ES_JAVA_OPTS: -Xms512m -Xmx512m
       bootstrap.memory_lock: "true"

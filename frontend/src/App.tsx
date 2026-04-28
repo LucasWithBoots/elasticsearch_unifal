@@ -11,15 +11,15 @@ type SearchResult = {
 type RequestStatus = 'idle' | 'loading' | 'success' | 'error'
 
 const PAGE_SIZE = 10
-const CURL_COMMAND = `curl -k -u elastic:user123 -X POST "https://localhost:9200/wikipedia/_doc" \\
+const CURL_COMMAND = `curl -u elastic:user123 -X POST "http://localhost:9200/wikipedia/_doc" \\
   -H "Content-Type: application/json" \\
   -d '{
     "title": "Computador",
-    "url": "https://example.com/computador",
+    "url": "http://example.com/computador",
     "content": "Computador é uma máquina eletrônica capaz de processar dados."
   }'
 
-curl -k -u elastic:user123 -X POST "https://localhost:9200/wikipedia/_refresh"`
+curl -u elastic:user123 -X POST "http://localhost:9200/wikipedia/_refresh"`
 
 function App() {
   const [query, setQuery] = useState('')
