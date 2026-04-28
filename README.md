@@ -1,62 +1,136 @@
 # Elasticsearch Search API
 
-Este é um projeto exemplo de uma aplicação Spring Boot que utiliza o **Elasticsearch Java API Client** para realizar buscas em um índice do Elasticsearch. A API é definida utilizando o padrão OpenAPI (Swagger).
+Projeto exemplo com backend **Spring Boot** e frontend **React + Vite** para consultar documentos indexados no Elasticsearch.
 
-## 🚀 Tecnologias Utilizadas
+O backend busca documentos no índice `wikipedia`, usando o campo `content` como campo pesquisável. A resposta exibida no frontend usa os campos `title`, `url` e `content`.
 
-*   **Java 17**
-*   **Spring Boot 3.1.0**
-*   **Elasticsearch Java Client 8.8.0**
-*   **OpenAPI Generator** (para geração de interfaces e modelos a partir do `api.yml`)
-*   **Maven**
+## Tecnologias
 
-## 📋 Pré-requisitos
+- Java 17
+- Spring Boot 3.1.0
+- Maven
+- Elasticsearch 8.8.0
+- React
+- Vite
+- Docker Compose
 
-*   JDK 17 instalado.
-*   Instância do Elasticsearch rodando localmente (padrão esperado: `https://localhost:9200`).
-*   Índice chamado `wikipedia` criado no Elasticsearch com o campo `content`.
+## Pré-requisitos
 
-## 🛠️ Configuração do Elasticsearch
+- Java 17
+- Maven ou Maven Wrapper funcionando
+- Node.js e npm
+- Docker e Docker Compose
 
-A conexão com o Elasticsearch é configurada na classe `EsClient.java`. Atualmente, ela está configurada para:
-*   **Host:** `https://localhost:9200`
-*   **Usuário:** `elastic`
-*   **Senha:** `user123`
-*   **SSL:** Configurado para ignorar certificados não confiáveis (apenas para ambiente de desenvolvimento).
+Verifique:
 
-## 📂 Estrutura da API
-
-A definição da API está localizada em `src/main/resources/api.yml`.
-
-### Endpoint de Busca
-`GET /search`
-
-**Parâmetros:**
-*   `query` (string, obrigatório): O termo de busca a ser enviado ao campo `content` do Elasticsearch.
-*   `page` (integer, opcional): O número da página de resultados (padrão: `1`).
-
-**Exemplo de uso:**
 ```bash
-curl "http://localhost:8080/search?query=computador&page=1"
+java -version
+mvn -version
+node --version
+npm --version
+docker --version
 ```
 
-## ⚙️ Como Executar
+## 1. Subir o Elasticsearch
 
-1.  Compile o projeto para gerar as classes a partir do OpenAPI:
-    ```bash
-    ./mvnw compile
-    ```
+Na raiz do projeto:
 
-2.  Execute a aplicação:
-    ```bash
-    ./mvnw spring-boot:run
-    ```
+```bash
+docker compose up -d
+```
 
-A aplicação estará disponível em `http://localhost:8080`.
+Teste se o Elasticsearch está respondendo:
 
-## 📝 Detalhes da Implementação
+```bash
+curl -k -u elastic:user123 https://localhost:9200
+```
 
-*   **Geração de Código:** O plugin `openapi-generator-maven-plugin` gera a interface `SearchApi` e o modelo `Result` automaticamente.
-*   **Controlador:** `SearchController` implementa a interface gerada e delega a lógica para o `SearchService`.
-*   **Serviço:** `SearchService` processa os resultados do Elasticsearch e limpa o conteúdo (removendo tags HTML e caracteres especiais).
-*   **Paginação:** O cálculo do offset (`from`) é feito no `EsClient` seguindo a fórmula `(page - 1) * 10`.
+Credenciais usadas pelo projeto:
+
+- Host: `https://localhost:9200`
+- Usuário: `elastic`
+- Senha: `user123`
+
+## 2. Criar o índice `wikipedia`
+
+Execute:
+
+```bash
+curl -k -u elastic:user123 -X PUT "https://localhost:9200/wikipedia" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mappings": {
+      "properties": {
+        "title": { "type": "text" },
+        "url": { "type": "keyword" },
+        "content": { "type": "text" }
+      }
+    }
+  }'
+```
+
+Se o índice já existir, esse comando pode retornar erro. Nesse caso, você pode continuar usando o índice existente.
+
+## 3. Inserir documento de teste
+
+```bash
+curl -k -u elastic:user123 -X POST "https://localhost:9200/wikipedia/_doc" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Computador",
+    "url": "https://example.com/computador",
+    "content": "Computador é uma máquina eletrônica capaz de processar dados."
+  }'
+```
+
+Force a atualização do índice para o documento aparecer imediatamente nas buscas:
+
+```bash
+curl -k -u elastic:user123 -X POST "https://localhost:9200/wikipedia/_refresh"
+```
+
+## 4. Rodar o backend
+
+Na raiz do projeto:
+
+```bash
+mvn compile
+mvn spring-boot:run
+```
+
+Se o Maven Wrapper estiver configurado corretamente, também é possível usar:
+
+```bash
+./mvnw compile
+./mvnw spring-boot:run
+```
+
+O backend ficará disponível em:
+
+```text
+http://localhost:8080/v1
+```
+
+Teste a API:
+
+```bash
+curl "http://localhost:8080/v1/search?query=computador&page=1"
+```
+
+## 5. Rodar o frontend
+
+Em outro terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Acesse:
+
+```text
+http://localhost:5173
+```
+
+O Vite está configurado para encaminhar chamadas de `/v1` para o backend em `http://localhost:8080`.
