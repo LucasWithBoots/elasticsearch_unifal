@@ -24,12 +24,20 @@ public class SearchService {
 
         var resultsList = hits.stream().map(h ->
                 new Result()
-                        .abs(treatContent(h.source().get("content").asText()))
-                        .title(h.source().get("title").asText())
-                        .url(h.source().get("url").asText())
+                        .abs(treatContent(readField(h.source(), "content")))
+                        .title(readField(h.source(), "title"))
+                        .url(readField(h.source(), "url"))
         ).collect(Collectors.toList());
 
         return resultsList;
+    }
+
+    private String readField(ObjectNode source, String fieldName) {
+        if (source == null || source.get(fieldName) == null || source.get(fieldName).isNull()) {
+            return "";
+        }
+
+        return source.get(fieldName).asText("");
     }
 
     private String treatContent(String content) {

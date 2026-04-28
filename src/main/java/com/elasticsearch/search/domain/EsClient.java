@@ -8,13 +8,11 @@ import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import nl.altindag.ssl.SSLFactory;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.elasticsearch.client.RestClient;
 import org.springframework.stereotype.Component;
 
@@ -36,18 +34,11 @@ public class EsClient {
         credentialsProvider.setCredentials(AuthScope.ANY,
             new UsernamePasswordCredentials(USER, PWD));
 
-        SSLFactory sslFactory = SSLFactory.builder()
-            .withUnsafeTrustMaterial()
-            .withUnsafeHostnameVerifier()
-            .build();
-
         RestClient restClient = RestClient.builder(
-                new HttpHost("localhost", 9200, "https"))
-            .setHttpClientConfigCallback((HttpAsyncClientBuilder httpClientBuilder) -> httpClientBuilder
-                .setDefaultCredentialsProvider(credentialsProvider)
-                .setSSLContext(sslFactory.getSslContext())
-                .setSSLHostnameVerifier(sslFactory.getHostnameVerifier())
-            ).build();
+                new HttpHost("localhost", 9200, "http"))
+            .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
+                .setDefaultCredentialsProvider(credentialsProvider))
+            .build();
 
         ElasticsearchTransport transport = new RestClientTransport(
             restClient,
