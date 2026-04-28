@@ -1,121 +1,182 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { useMemo, useState } from 'react'
+import type { FormEvent } from 'react'
 import './App.css'
 
+type SearchResult = {
+  title?: string
+  url?: string
+  abs?: string
+}
+
+type RequestStatus = 'idle' | 'loading' | 'success' | 'error'
+
+const PAGE_SIZE = 10
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [query, setQuery] = useState('')
+  const [searchedQuery, setSearchedQuery] = useState('')
+  const [page, setPage] = useState(1)
+  const [results, setResults] = useState<SearchResult[]>([])
+  const [status, setStatus] = useState<RequestStatus>('idle')
+  const [error, setError] = useState('')
+
+  const hasResults = results.length > 0
+  const canGoBack = page > 1 && status !== 'loading'
+  const canGoNext = results.length === PAGE_SIZE && status !== 'loading'
+
+  const heading = useMemo(() => {
+    if (status === 'idle') return 'Pesquise no indice wikipedia'
+    if (status === 'loading') return 'Buscando documentos...'
+    if (status === 'error') return 'Nao foi possivel buscar'
+    if (!hasResults) return `Nenhum resultado para "${searchedQuery}"`
+    return `${results.length} resultado${results.length === 1 ? '' : 's'} para "${searchedQuery}"`
+  }, [hasResults, results.length, searchedQuery, status])
+
+  async function search(nextPage = 1, nextQuery = query) {
+    const normalizedQuery = nextQuery.trim()
+
+    if (!normalizedQuery) {
+      setStatus('error')
+      setError('Digite um termo para pesquisar.')
+      setResults([])
+      return
+    }
+
+    setStatus('loading')
+    setError('')
+
+    try {
+      const params = new URLSearchParams({
+        query: normalizedQuery,
+        page: String(nextPage),
+      })
+      const response = await fetch(`/v1/search?${params.toString()}`)
+
+      if (!response.ok) {
+        throw new Error(`A API respondeu com status ${response.status}.`)
+      }
+
+      const data = (await response.json()) as SearchResult[]
+      setResults(Array.isArray(data) ? data : [])
+      setSearchedQuery(normalizedQuery)
+      setPage(nextPage)
+      setStatus('success')
+    } catch (err) {
+      setResults([])
+      setStatus('error')
+      setError(err instanceof Error ? err.message : 'Erro inesperado na busca.')
+    }
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    search(1)
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <main className="page">
+      <section className="hero">
+        <div className="brand">
+          <span className="brand-mark">ES</span>
+          <div>
+            <p className="eyebrow">Elasticsearch Search API</p>
+            <h1>Busca simples para seus documentos</h1>
+          </div>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
+
+        <form className="search-box" onSubmit={handleSubmit}>
+          <label htmlFor="query">Termo de busca</label>
+          <div className="search-row">
+            <input
+              id="query"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Ex.: computador, java, elasticsearch"
+              type="search"
+            />
+            <button disabled={status === 'loading'} type="submit">
+              {status === 'loading' ? 'Buscando...' : 'Buscar'}
+            </button>
+          </div>
+        </form>
       </section>
 
-      <div className="ticks"></div>
+      <section className="results-panel" aria-live="polite">
+        <div className="results-header">
+          <div>
+            <p className="eyebrow">Resultados</p>
+            <h2>{heading}</h2>
+          </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+          <div className="pagination" aria-label="Paginacao">
+            <button
+              aria-label="Pagina anterior"
+              disabled={!canGoBack}
+              onClick={() => search(page - 1, searchedQuery || query)}
+              type="button"
+            >
+              ‹
+            </button>
+            <span>Pagina {page}</span>
+            <button
+              aria-label="Proxima pagina"
+              disabled={!canGoNext}
+              onClick={() => search(page + 1, searchedQuery || query)}
+              type="button"
+            >
+              ›
+            </button>
+          </div>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
+
+        {status === 'idle' && (
+          <div className="state-card">
+            <strong>Pronto para consultar</strong>
+            <p>Digite uma palavra-chave para buscar no indice `wikipedia`.</p>
+          </div>
+        )}
+
+        {status === 'loading' && (
+          <div className="state-card">
+            <span className="loader" />
+            <p>Consultando o backend Spring Boot...</p>
+          </div>
+        )}
+
+        {status === 'error' && (
+          <div className="state-card state-card-error">
+            <strong>Erro na consulta</strong>
+            <p>{error}</p>
+          </div>
+        )}
+
+        {status === 'success' && !hasResults && (
+          <div className="state-card">
+            <strong>Nada encontrado</strong>
+            <p>Confira se existem documentos no Elasticsearch com esse termo.</p>
+          </div>
+        )}
+
+        {hasResults && (
+          <div className="result-list">
+            {results.map((result, index) => (
+              <article className="result-card" key={`${result.url ?? result.title ?? 'result'}-${index}`}>
+                <div>
+                  <h3>{result.title || 'Sem titulo'}</h3>
+                  <p>{result.abs || 'Documento sem resumo disponivel.'}</p>
+                </div>
+
+                {result.url && (
+                  <a href={result.url} rel="noreferrer" target="_blank">
+                    Abrir fonte
+                  </a>
+                )}
+              </article>
+            ))}
+          </div>
+        )}
       </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    </main>
   )
 }
 
