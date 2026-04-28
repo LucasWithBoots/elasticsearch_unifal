@@ -42,12 +42,12 @@ docker compose up -d
 Teste se o Elasticsearch está respondendo:
 
 ```bash
-curl -k -u elastic:user123 https://localhost:9200
+curl -u elastic:user123 http://localhost:9200
 ```
 
 Credenciais usadas pelo projeto:
 
-- Host: `https://localhost:9200`
+- Host: `http://localhost:9200`
 - Usuário: `elastic`
 - Senha: `user123`
 
@@ -56,7 +56,7 @@ Credenciais usadas pelo projeto:
 Execute:
 
 ```bash
-curl -k -u elastic:user123 -X PUT "https://localhost:9200/wikipedia" \
+curl -u elastic:user123 -X PUT "http://localhost:9200/wikipedia" \
   -H "Content-Type: application/json" \
   -d '{
     "mappings": {
@@ -74,11 +74,11 @@ Se o índice já existir, esse comando pode retornar erro. Nesse caso, você pod
 ## 3. Inserir documento de teste
 
 ```bash
-curl -k -u elastic:user123 -X POST "https://localhost:9200/wikipedia/_doc" \
+curl -u elastic:user123 -X POST "http://localhost:9200/wikipedia/_doc" \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Computador",
-    "url": "https://example.com/computador",
+    "url": "http://example.com/computador",
     "content": "Computador é uma máquina eletrônica capaz de processar dados."
   }'
 ```
@@ -86,19 +86,12 @@ curl -k -u elastic:user123 -X POST "https://localhost:9200/wikipedia/_doc" \
 Force a atualização do índice para o documento aparecer imediatamente nas buscas:
 
 ```bash
-curl -k -u elastic:user123 -X POST "https://localhost:9200/wikipedia/_refresh"
+curl -u elastic:user123 -X POST "http://localhost:9200/wikipedia/_refresh"
 ```
 
 ## 4. Rodar o backend
 
 Na raiz do projeto:
-
-```bash
-mvn compile
-mvn spring-boot:run
-```
-
-Se o Maven Wrapper estiver configurado corretamente, também é possível usar:
 
 ```bash
 ./mvnw compile
