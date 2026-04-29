@@ -1,5 +1,7 @@
 # Elasticsearch Search API
 
+https://github.com/user-attachments/assets/ef8eb2cc-47aa-48ca-b324-ecc3890630ab
+
 Projeto exemplo com backend **Spring Boot** e frontend **React + Vite** para consultar documentos indexados no Elasticsearch.
 
 O backend busca documentos no índice `wikipedia`, usando o campo `content` como campo pesquisável. A resposta exibida no frontend usa os campos `title`, `url` e `content`.
