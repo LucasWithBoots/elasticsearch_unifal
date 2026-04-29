@@ -21,16 +21,6 @@ O backend busca documentos no índice `wikipedia`, usando o campo `content` como
 - Node.js e npm
 - Docker e Docker Compose
 
-Verifique:
-
-```bash
-java -version
-mvn -version
-node --version
-npm --version
-docker --version
-```
-
 ## 1. Subir o Elasticsearch
 
 Na raiz do projeto:
@@ -74,13 +64,9 @@ Se o índice já existir, esse comando pode retornar erro. Nesse caso, você pod
 ## 3. Inserir documento de teste
 
 ```bash
-curl -u elastic:user123 -X POST "http://localhost:9200/wikipedia/_doc" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Computador",
-    "url": "http://example.com/computador",
-    "content": "Computador é uma máquina eletrônica capaz de processar dados."
-  }'
+curl -H "Content-Type: application/x-ndjson" \
+  -X POST "http://localhost:9200/wikipedia/_bulk" \
+  --data-binary "@./static/wiki.json"
 ```
 
 Force a atualização do índice para o documento aparecer imediatamente nas buscas:
