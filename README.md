@@ -29,12 +29,6 @@ Na raiz do projeto:
 docker compose up -d
 ```
 
-Teste se o Elasticsearch está respondendo:
-
-```bash
-curl -u elastic:user123 http://localhost:9200
-```
-
 Credenciais usadas pelo projeto:
 
 - Host: `http://localhost:9200`
@@ -93,7 +87,7 @@ http://localhost:8080/v1
 Teste a API:
 
 ```bash
-curl "http://localhost:8080/v1/search?query=computador&page=1"
+curl "http://localhost:8080/v1/search?query=Illustration&page=1"
 ```
 
 ## 5. Rodar o frontend
