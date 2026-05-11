@@ -49,6 +49,15 @@ components:
           type: string
         abs:
           type: string
+        score:
+          type: number
+          format: double
+          description: Relevance score returned by Elasticsearch
+        highlights:
+          type: array
+          description: Text fragments highlighted by Elasticsearch
+          items:
+            type: string
     Error:
       type: object
       required:

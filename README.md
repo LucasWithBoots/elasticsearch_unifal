@@ -4,7 +4,16 @@ https://github.com/user-attachments/assets/ef8eb2cc-47aa-48ca-b324-ecc3890630ab
 
 Projeto exemplo com backend **Spring Boot** e frontend **React + Vite** para consultar documentos indexados no Elasticsearch.
 
-O backend busca documentos no índice `wikipedia`, usando o campo `content` como campo pesquisável. A resposta exibida no frontend usa os campos `title`, `url` e `content`.
+O backend busca documentos no índice `wikipedia`, usando os campos `title` e `content` como campos pesquisáveis. A resposta exibida no frontend usa os campos `title`, `url`, `content`, `score` e trechos destacados por highlight.
+
+## Funcionalidades do Elasticsearch implementadas
+
+- Busca em múltiplos campos com `multi_match`.
+- Peso maior para o campo `title` com `title^3`.
+- Busca tolerante a erro de digitação com `fuzziness: AUTO`.
+- Highlight dos termos encontrados em `title` e `content`.
+- Paginação com `from` e `size`.
+- Exibição da pontuação de relevância (`_score`) retornada pelo Elasticsearch.
 
 ## Tecnologias
 
@@ -45,11 +54,27 @@ Execute:
 curl -u elastic:user123 -X PUT "http://localhost:9200/wikipedia" \
   -H "Content-Type: application/json" \
   -d '{
+    "settings": {
+      "analysis": {
+        "analyzer": {
+          "pt_text": {
+            "type": "standard",
+            "stopwords": "_portuguese_"
+          }
+        }
+      }
+    },
     "mappings": {
       "properties": {
-        "title": { "type": "text" },
+        "title": {
+          "type": "text",
+          "analyzer": "pt_text"
+        },
         "url": { "type": "keyword" },
-        "content": { "type": "text" }
+        "content": {
+          "type": "text",
+          "analyzer": "pt_text"
+        }
       }
     }
   }'
@@ -60,7 +85,7 @@ Se o índice já existir, esse comando pode retornar erro. Nesse caso, você pod
 ## 3. Inserir documento de teste
 
 ```bash
-curl -H "Content-Type: application/x-ndjson" \
+curl -u elastic:user123 -H "Content-Type: application/x-ndjson" \
   -X POST "http://localhost:9200/wikipedia/_bulk" \
   --data-binary "@./static/wiki.json"
 ```
@@ -90,6 +115,28 @@ Teste a API:
 
 ```bash
 curl "http://localhost:8080/v1/search?query=Illustration&page=1"
+```
+
+Teste a tolerância a erro de digitação buscando uma palavra escrita de forma incompleta ou errada:
+
+```bash
+curl "http://localhost:8080/v1/search?query=computdor&page=1"
+```
+
+A resposta inclui `score` e `highlights`:
+
+```json
+[
+  {
+    "title": "Computador",
+    "url": "http://example.com/computador",
+    "abs": "Computador e uma maquina eletronica capaz de processar dados",
+    "score": 3.14,
+    "highlights": [
+      "<mark>Computador</mark> e uma maquina eletronica capaz de processar dados."
+    ]
+  }
+]
 ```
 
 ## 5. Rodar o frontend

@@ -6,6 +6,7 @@ import com.elasticsearch.search.domain.EsClient;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,9 +28,31 @@ public class SearchService {
                         .abs(treatContent(readField(h.source(), "content")))
                         .title(readField(h.source(), "title"))
                         .url(readField(h.source(), "url"))
+                        .score(h.score())
+                        .highlights(readHighlights(h))
         ).collect(Collectors.toList());
 
         return resultsList;
+    }
+
+    private List<String> readHighlights(Hit<ObjectNode> hit) {
+        var highlights = new ArrayList<String>();
+
+        if (hit.highlight() == null) {
+            return highlights;
+        }
+
+        var titleHighlights = hit.highlight().get("title");
+        if (titleHighlights != null) {
+            highlights.addAll(titleHighlights);
+        }
+
+        var contentHighlights = hit.highlight().get("content");
+        if (contentHighlights != null) {
+            highlights.addAll(contentHighlights);
+        }
+
+        return highlights;
     }
 
     private String readField(ObjectNode source, String fieldName) {

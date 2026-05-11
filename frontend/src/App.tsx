@@ -6,6 +6,8 @@ type SearchResult = {
   title?: string
   url?: string
   abs?: string
+  score?: number
+  highlights?: string[]
 }
 
 type RequestStatus = 'idle' | 'loading' | 'success' | 'error'
@@ -20,6 +22,29 @@ const CURL_COMMAND = `curl -u elastic:user123 -X POST "http://localhost:9200/wik
   }'
 
 curl -u elastic:user123 -X POST "http://localhost:9200/wikipedia/_refresh"`
+
+function renderHighlightedText(text: string) {
+  const tokens = text.split(/(<mark>|<\/mark>)/g)
+  let highlighted = false
+
+  return tokens.map((token, index) => {
+    if (token === '<mark>') {
+      highlighted = true
+      return null
+    }
+
+    if (token === '</mark>') {
+      highlighted = false
+      return null
+    }
+
+    if (!token) {
+      return null
+    }
+
+    return highlighted ? <mark key={index}>{token}</mark> : <span key={index}>{token}</span>
+  })
+}
 
 function App() {
   const [query, setQuery] = useState('')
@@ -178,8 +203,24 @@ function App() {
             {results.map((result, index) => (
               <article className="result-card" key={`${result.url ?? result.title ?? 'result'}-${index}`}>
                 <div>
-                  <h3>{result.title || 'Sem titulo'}</h3>
-                  <p>{result.abs || 'Documento sem resumo disponivel.'}</p>
+                  <div className="result-title-row">
+                    <h3>{result.title || 'Sem titulo'}</h3>
+                    {typeof result.score === 'number' && (
+                      <span className="score" title="Pontuacao de relevancia">
+                        {result.score.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
+
+                  {result.highlights && result.highlights.length > 0 ? (
+                    <div className="highlight-list">
+                      {result.highlights.map((highlight, highlightIndex) => (
+                        <p key={highlightIndex}>{renderHighlightedText(highlight)}</p>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>{result.abs || 'Documento sem resumo disponivel.'}</p>
+                  )}
                 </div>
 
                 {result.url && (

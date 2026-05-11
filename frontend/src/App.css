@@ -214,10 +214,44 @@ button:disabled {
   line-height: 1.35;
 }
 
+.result-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.score {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #fff2c2;
+  color: #6b5300;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
 .result-card p {
   margin-top: 8px;
   color: #475467;
   line-height: 1.65;
+}
+
+.highlight-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.highlight-list p {
+  margin-top: 0;
+}
+
+.highlight-list mark {
+  border-radius: 4px;
+  background: #ffdf66;
+  color: #121826;
+  font-weight: 800;
 }
 
 .result-link {

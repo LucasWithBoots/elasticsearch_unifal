@@ -1,8 +1,8 @@
 package com.elasticsearch.search.domain;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
@@ -48,16 +48,30 @@ public class EsClient {
         elasticsearchClient = new co.elastic.clients.elasticsearch.ElasticsearchClient(transport);
     }
 
-    public SearchResponse search(String query, Integer page) {
+    public SearchResponse<ObjectNode> search(String query, Integer page) {
         int pageSize = 10;
-        int from = ((page != null ? page : 1) - 1) * pageSize;
-        Query matchQuery = MatchQuery.of(q -> q.field("content").query(query))._toQuery();
+        int safePage = page != null && page > 0 ? page : 1;
+        int from = (safePage - 1) * pageSize;
+        String safeQuery = query == null ? "" : query.trim();
+
+        Query searchQuery = Query.of(q -> q.multiMatch(m -> m
+            .query(safeQuery)
+            .fields("title^3", "content")
+            .type(TextQueryType.BestFields)
+            .fuzziness("AUTO")
+        ));
 
         SearchResponse<ObjectNode> response;
         try {
             response = elasticsearchClient.search(s -> s
                 .index("wikipedia").from(from).size(pageSize)
-                .query(matchQuery), ObjectNode.class
+                .query(searchQuery)
+                .highlight(h -> h
+                    .preTags("<mark>")
+                    .postTags("</mark>")
+                    .fields("title", f -> f.numberOfFragments(0))
+                    .fields("content", f -> f.fragmentSize(180).numberOfFragments(2))
+                ), ObjectNode.class
             );
         } catch (IOException e) {
             throw new RuntimeException(e);
